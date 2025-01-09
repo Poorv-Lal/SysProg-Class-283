@@ -35,10 +35,13 @@ Please provide answers to these questions using markdown notation and place them
 
 
 3. Please provide a link to the repository you are using for this class.
-   https://github.com/Poorv-Lal/SysProg-Class-283.git 
+   
+    - https://github.com/Poorv-Lal/SysProg-Class-283.git 
 
 4. Briefly describe what you want to get out of this class.
-   To know what systems programming is. Currently, these are just vauge words with an important aura, so I would like to know what it entails. 
+   
+    - To know what systems programming is. Currently, these are just vauge words with an important aura, so I would like to know what it entails. 
 
 5. Briefly describe any concerns you might be having with being successful in this class (if any).
-   I have no idea what this class is about or what things we are learning in it, so I am unsure where I need to focus the most to succeed. 
+   
+    - I have no idea what this class is about or what things we are learning in it, so I am unsure where I need to focus the most to succeed. 
