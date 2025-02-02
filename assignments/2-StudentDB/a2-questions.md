@@ -102,11 +102,12 @@ Please answer the following questions and submit in your repo for the second ass
 
     - Please explain why the file size reported by the `ls` command was 128 bytes after adding student with ID=1, 256 after adding student with ID=3, and 4160 after adding the student with ID=64? 
 
-        > **ANSWER:** _start here_
+        > **ANSWER:** The first 64 bytes of the disk are not used for storing students' information and they never will be. you can get the number of bytes that the computer will use by doing the following " (id+1)*64. this is becuase the id is theoretically telling you how many potential students there are and each student takes 64 bytes we start at byte 64 becuase none of the students have an id of 0 so there is never going to be a student stored between byte 0 and 64.
+        > Putting it simply for the id=64 example, the computer thinks that it needs space for 64 students and each student is 64 bytes. this gets you to 4,096 bytes. the last 64 comes from the student who would have had id 0, except there is never going to be a kid with id 0 so the first 64 bytes is not used for student storage purposes in practice. 
 
     -   Why did the total storage used on the disk remain unchanged when we added the student with ID=1, ID=3, and ID=63, but increased from 4K to 8K when we added the student with ID=64? 
 
-        > **ANSWER:** _start here_
+        > **ANSWER:** The computer game us an initial playground of space to work in that was 4K on the disk. When we were only adding a few students all of our work was contained to our allocated playground. Once we tried to add in a student with an id of 64 we surpassed the initial space the computer gave us. The computer goes "Oh I see you need a bigger playground" and doubles the space on the disk we are allowed to work with. 
 
     - Now lets add one more student with a large student ID number  and see what happens:
 
@@ -119,4 +120,4 @@ Please answer the following questions and submit in your repo for the second ass
         ```
         We see from above adding a student with a very large student ID (ID=99999) increased the file size to 6400000 as shown by `ls` but the raw storage only increased to 12K as reported by `du`.  Can provide some insight into why this happened?
 
-        > **ANSWER:**  _start here_
+        > **ANSWER:**  The issue is that you are trying to get a HUGE playground but aren't using most of it so the computer is hesitant to give you a ton of room to play with. It's giving you data begrudgingly and if you prove that you need the space you say you need by using what it's allotted to you it'll give you more, but right now you are wasting the room it gave you so it's not willing to give you a lot of space just for it to be wasted. It knows you skipped over a ton of space it gave you and it knows as you keep working you'll use more of it but it doesn't believe that you're going to use all of it.
