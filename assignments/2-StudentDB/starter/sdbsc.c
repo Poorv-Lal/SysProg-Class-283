@@ -1,3 +1,4 @@
+//Name: Poorv Lal (Bareli) - pbl37
 #include <stdio.h>
 #include <stdlib.h>
 #include <fcntl.h> //c library for system call file routines
@@ -47,6 +48,25 @@ int open_db(char *dbFile, bool should_truncate)
     return fd;
 }
 
+//check if a student ACTUALLY exisits 
+// returns 1 is student exists
+// returns 0 if student does not exisit
+//returns -1 if something else went wrong
+//int exists(int fd, int id){
+//	lseek(fd,id*sizeof(student_t),SEEK_SET);
+
+//	student_t student;
+//	read(fd, &student, sizeof(student_t));
+
+//	if (memcmp(&student, &EMPTY_STUDENT_RECORD , sizeof(student_t)) != 0  && student.id == id ) 
+//	{
+//		return 1;
+//	}
+
+//	return 0;
+//}
+
+
 /*
  *  get_student
  *      fd:  linux file descriptor
@@ -63,7 +83,24 @@ int open_db(char *dbFile, bool should_truncate)
 int get_student(int fd, int id, student_t *s)
 {
     // TODO
-    return NOT_IMPLEMENTED_YET;
+    //printf("%d %d %d\n", fd,id,s->gpa);
+    lseek(fd, id* sizeof(student_t),SEEK_SET) ;
+
+    student_t st;
+    int rc = read(fd, &st,sizeof(student_t));
+
+    if(rc != sizeof(student_t))
+    {
+		return ERR_DB_FILE;
+    }
+
+    else if (memcmp(&st, &EMPTY_STUDENT_RECORD, sizeof(student_t)) == 0 )
+    {
+		return SRCH_NOT_FOUND;
+    }
+	
+	*s = st;
+    return NO_ERROR;
 }
 
 /*
@@ -94,8 +131,49 @@ int get_student(int fd, int id, student_t *s)
 int add_student(int fd, int id, char *fname, char *lname, int gpa)
 {
     // TODO
-    printf(M_NOT_IMPL);
-    return NOT_IMPLEMENTED_YET;
+    //printf("%d %d %s, %s %d\n ", fd,id,fname,lname,gpa);
+//	student_t student;
+
+	//check if we can put a person here in the first place
+	//if(lseek(fd,id*sizeof(student_t),SEEK_SET) == -1 || read(fd, &student, sizeof(student_t)) != sizeof(student_t ))
+	//{
+//		printf(M_ERR_DB_READ);
+//		return ERR_DB_FILE;
+//	}
+	
+	//check if theres already a student there (bad) 
+	student_t st;
+	lseek(fd,id*sizeof(student_t),SEEK_SET);
+	read(fd,&st,sizeof(student_t));
+
+	if( st.id == id )
+	{
+		printf(M_ERR_DB_ADD_DUP, id );
+		return ERR_DB_OP;
+	}
+
+	//make the new student
+	student_t new_student = {id,"","",gpa};
+	strncpy(new_student.fname, fname, sizeof(new_student.fname) - 1);
+	strncpy(new_student.lname, lname, sizeof(new_student.lname) - 1);
+
+	
+	//go to where you want put the new student
+    lseek(fd,id*sizeof(student_t),SEEK_SET);
+	
+    //write the student information in that spot
+	int rc = write(fd,&new_student,sizeof(student_t));
+
+	if(rc != sizeof(student_t))
+	{
+		printf(M_ERR_DB_WRITE);
+		return ERR_DB_FILE;
+	}
+
+	//enverything worked right output
+    printf(M_STD_ADDED, id); 
+    return NO_ERROR;
+    
 }
 
 /*
@@ -122,9 +200,44 @@ int add_student(int fd, int id, char *fname, char *lname, int gpa)
  */
 int del_student(int fd, int id)
 {
-    // TODO
-    printf(M_NOT_IMPL);
-    return NOT_IMPLEMENTED_YET;
+    // TODOi
+   // printf("%d %d \n ", fd,id);
+    //printf(M_NOT_IMPL);
+    //return NOT_IMPLEMENTED_YET;
+	
+	student_t student;
+	
+	//go to the location of the student we want to deleate
+	if(lseek(fd,id*sizeof(student_t),SEEK_SET) == -1){
+		printf(M_ERR_DB_READ);
+		return ERR_DB_FILE;
+	}
+	
+	//read
+	if (read(fd, &student, sizeof(student_t)) != sizeof(student_t)) {
+		printf(M_ERR_DB_READ);
+		return ERR_DB_FILE;
+
+
+	}
+
+	//check if the student even actually exists
+	if(memcmp(&student, &EMPTY_STUDENT_RECORD, sizeof(student_t)) == 0 )
+	{
+		printf(M_STD_NOT_FND_MSG,id);
+		return ERR_DB_OP;
+	}
+
+	//write in all the zeros 
+	lseek(fd,id*sizeof(student_t),SEEK_SET);
+	if (write(fd, &EMPTY_STUDENT_RECORD, sizeof(student_t)) != sizeof(student_t)) {
+		printf(M_ERR_DB_WRITE);
+		return ERR_DB_FILE;
+	}
+	
+	printf(M_STD_DEL_MSG,id);
+	return NO_ERROR; 	
+
 }
 
 /*
@@ -154,8 +267,74 @@ int del_student(int fd, int id)
 int count_db_records(int fd)
 {
     // TODO
-    printf(M_NOT_IMPL);
-    return NOT_IMPLEMENTED_YET;
+    //initalise current stanting position az 0
+    student_t student;
+	int count = 0;
+
+	
+	//go to start of file
+	lseek(fd,0,SEEK_SET);
+
+	//go thoough each potential student in the file and check if they are real or not
+	while( read(fd,&student,sizeof(student_t)) == sizeof(student_t) )
+	{
+		if (memcmp(&student, &EMPTY_STUDENT_RECORD, sizeof(student_t)) != 0 ){
+			count++;
+		}
+	}
+	
+	//print relevent message
+	if (count == 0){
+		printf(M_DB_EMPTY);
+	}else {
+		 printf(M_DB_RECORD_CNT, count);
+	}
+
+	//return the count 
+    return count;
+}
+
+/*
+ *  print_student
+ *      *s:   a pointer to a student_t structure that should
+ *            contain a valid student to be printed
+ *
+ *  Start by ensuring that provided student pointer is valid.  To do this
+ *  make sure it is not NULL and that s->id is not zero.  After ensuring
+ *  that the student is valid, print it the exact way that is described
+ *  in the print_db() function by first printing the header then the
+ *  student data:
+ * 
+ *     printf(STUDENT_PRINT_HDR_STRING, "ID",
+ *                 "FIRST NAME", "LAST_NAME", "GPA"); 
+ * 
+ *     printf(STUDENT_PRINT_FMT_STRING, s->id, s->fname,
+ *                    student.lname, calculated_gpa_from_s);
+ * 
+ *  Dont forget that  the GPA in the student structure is an int, to convert
+ *  it into a real gpa divide by 100.0 and store in a float variable.
+ *
+ *  returns:  nothing, this is a void function
+ *
+ *
+ *  console:  <see above>      on success, print table or database empty
+ *            M_ERR_STD_PRINT  if the function argument s is NULL or if
+ *                             s->id is zero
+ *
+ */
+ void print_student(student_t *s)
+ {
+ 	// TODO
+	if(!s || s->id ==0)
+	{
+		printf(M_ERR_STD_PRINT);
+		return;
+	}
+
+ 	float calc_gpa = s->gpa/100.0 ;
+ 	
+ 	printf(STUDENT_PRINT_HDR_STRING, "ID","FIRST NAME", "LAST_NAME", "GPA");
+ 	printf(STUDENT_PRINT_FMT_STRING, s->id, s->fname,s->lname, calc_gpa);
 }
 
 /*
@@ -193,44 +372,86 @@ int count_db_records(int fd)
  */
 int print_db(int fd)
 {
-    // TODO
-    printf(M_NOT_IMPL);
-    return NOT_IMPLEMENTED_YET;
+	//header
+	//printf(STUDENT_PRINT_HDR_STRING, "ID","FIRST NAME", "LAST_NAME", "GPA");
+	student_t student;
+	int count = 0;
+	
+	
+	//go to start of file
+	lseek(fd,0,SEEK_SET);
+	
+	//go thoough each potential student in the file and check if they are real or not
+	while( read(fd,&student,sizeof(student_t)) == sizeof(student_t) )
+	{
+		if (memcmp(&student, &EMPTY_STUDENT_RECORD, sizeof(student_t)) != 0 ){
+			count++;
+		}
+	}
+
+	// is the database enpty
+	if(count == 0 )
+	{
+		printf(M_DB_EMPTY);
+		return NO_ERROR;
+	}
+	//header
+	printf(STUDENT_PRINT_HDR_STRING, "ID","FIRST NAME", "LAST_NAME", "GPA");
+
+	//go though entire database and print if a stundet is there
+	//student_t student;
+
+	//go to start of file
+	lseek(fd,0,SEEK_SET);
+		
+	//go thoough each potential student in the file and check if they are real or not
+	while( read(fd,&student,sizeof(student_t)) == sizeof(student_t) )
+	{
+		if (memcmp(&student, &EMPTY_STUDENT_RECORD, sizeof(student_t)) !=0 ){
+			float calc_gpa = student.gpa/100.0 ;
+			printf(STUDENT_PRINT_FMT_STRING, student.id, student.fname,student.lname, calc_gpa);
+		}
+	}
+
+    return NO_ERROR;
 }
 
-/*
+/*MOVING THIS UP TO USE IN print_db ... nevermind, im not moving it back though
  *  print_student
- *      *s:   a pointer to a student_t structure that should
- *            contain a valid student to be printed
- *
- *  Start by ensuring that provided student pointer is valid.  To do this
- *  make sure it is not NULL and that s->id is not zero.  After ensuring
- *  that the student is valid, print it the exact way that is described
- *  in the print_db() function by first printing the header then the
- *  student data:
- *
- *     printf(STUDENT_PRINT_HDR_STRING, "ID",
- *                  "FIRST NAME", "LAST_NAME", "GPA");
- *
- *     printf(STUDENT_PRINT_FMT_STRING, s->id, s->fname,
- *                    student.lname, calculated_gpa_from_s);
- *
- *  Dont forget that  the GPA in the student structure is an int, to convert
- *  it into a real gpa divide by 100.0 and store in a float variable.
- *
- *  returns:  nothing, this is a void function
- *
- *
- *  console:  <see above>      on success, print table or database empty
- *            M_ERR_STD_PRINT  if the function argument s is NULL or if
- *                             s->id is zero
- *
- */
-void print_student(student_t *s)
-{
+     *      *s:   a pointer to a student_t structure that should
+	 *            contain a valid student to be printed
+ 	*
+ 	*  Start by ensuring that provided student pointer is valid.  To do this
+ 	*  make sure it is not NULL and that s->id is not zero.  After ensuring
+	 *  that the student is valid, print it the exact way that is described
+ 	*  in the print_db() function by first printing the header then the
+ 	*  student data:
+	 *
+	 *     printf(STUDENT_PRINT_HDR_STRING, "ID",
+	 *                  "FIRST NAME", "LAST_NAME", "GPA");
+	 *
+	 *     printf(STUDENT_PRINT_FMT_STRING, s->id, s->fname,
+	 *                    student.lname, calculated_gpa_from_s);
+	 *
+ 	*  Dont forget that  the GPA in the student structure is an int, to convert
+	 *  it into a real gpa divide by 100.0 and store in a float variable.
+	 *
+	 *  returns:  nothing, this is a void function
+	 *
+	 *
+	 *  console:  <see above>      on success, print table or database empty
+	 *            M_ERR_STD_PRINT  if the function argument s is NULL or if
+	 *                             s->id is zero
+ 	*
+	 */
+	//void print_student(student_t *s)
+	//{
     // TODO
-    printf(M_NOT_IMPL);
-}
+	//	float calc_gpa = s->gpa / 100.0;
+
+	//	 printf(STUDENT_PRINT_HDR_STRING, "ID","FIRST NAME", "LAST_NAME", "GPA");
+	//	 printf(STUDENT_PRINT_FMT_STRING, s->id, s->fname,s->lname, calc_gpa);
+	//}
 
 /*
  *  NOTE IMPLEMENTING THIS FUNCTION IS EXTRA CREDIT
