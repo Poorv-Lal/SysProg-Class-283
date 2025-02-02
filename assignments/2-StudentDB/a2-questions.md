@@ -5,7 +5,7 @@ Please answer the following questions and submit in your repo for the second ass
 
 1. In this assignment I asked you provide an implementation for the `get_student(...)` function because I think it improves the overall design of the database application.   After you implemented your solution do you agree that externalizing `get_student(...)` into it's own function is a good design strategy?  Briefly describe why or why not.
 
-    > **Answer**:  _start here_
+    > **Answer**:  Typically I like working with functions like this and implementing them in other functions, but there was so much going on in this specific case that I found trying to utilize it a little confusing. I don't understand why we wanted to copy it into the pointer after we found it. Also, I found juggling around the premise return statements confusing as I never really knew what I was returning. I tried implementing my own half_version of this called exists (its ghost still lives in the comments), but I ended up getting all tripped up with where in the file I was since there is a lseek that moves you but doesn't move you back after the function ends. I ended up just doing my little check when I needed to check if something existed within each function that needed it. I think if I had more time to sit with it and mess around in a simpler assignment where I comprehended all the interworkings of things a little more I would agree that it improves overall design, but in this specific case, it didn't end up getting utilized anywhere except for when the user called it. 
 
 2. Another interesting aspect of the `get_student(...)` function is how its function prototype requires the caller to provide the storage for the `student_t` structure:
 
@@ -39,7 +39,7 @@ Please answer the following questions and submit in your repo for the second ass
     ```
     Can you think of any reason why the above implementation would be a **very bad idea** using the C programming language?  Specifically, address why the above code introduces a subtle bug that could be hard to identify at runtime? 
 
-    > **ANSWER:** _start here_
+    > **ANSWER:** In the above implementation the student is a local variable and not a global one so when you leave the method the computer might try to reallocate that information becuase it doesn't know you still care about it. You might not find out immediately because you don't know if/ when the computer will choose to use that section of data for something else. Also it wouldn't raise any warnings or errors when you compile it because it doesn't think you are planning to use the local variable again in the first place and using a local variable in a method is normal.  
 
 3. Another way the `get_student(...)` function could be implemented is as follows:
 
