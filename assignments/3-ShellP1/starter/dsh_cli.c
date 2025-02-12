@@ -1,3 +1,4 @@
+//Name: Poorv Lal - pbl37
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -46,10 +47,58 @@
  */
 int main()
 {
-    char *cmd_buff;
+    char cmd_buff[SH_CMD_MAX] ;
     int rc = 0;
     command_list_t clist;
+	
+	//given while code from above
+    while(1){
+    	printf("%s", SH_PROMPT);
+    	if (fgets(cmd_buff, ARG_MAX, stdin) == NULL){
+    		printf("\n");
+    		break;
+    	}
+		//remove the trailing \n from cmd_buff
+    	cmd_buff[strcspn(cmd_buff,"\n")] = '\0';
+	
+		//they want to leave
+		if(strcmp(cmd_buff,EXIT_CMD) == 0 ){
+			break;
+		}
 
-    printf(M_NOT_IMPL);
-    exit(EXIT_NOT_IMPL);
+		//go break appart the thing they entered and store it in the clist
+		rc = build_cmd_list(cmd_buff,&clist);
+		
+		//go though what tehy gave us back
+		//they gave us the correct good thing that we want
+		if(rc == OK )
+		{
+			printf(CMD_OK_HEADER, clist.num);
+			for (int i = 0; i < clist.num; i++)
+			{	
+				if( clist.commands[i].args[0] == '\0' )
+				{
+					printf("<%d> %s\n", i + 1, clist.commands[i].exe);	
+				}
+				else{
+
+					printf("<%d> %s [%s]\n", i + 1, clist.commands[i].exe, clist.commands[i].args);
+				}
+			}
+		}
+
+		//they gave us bad things :(
+		else if (rc == WARN_NO_CMDS)
+		{
+			printf(CMD_WARN_NO_CMD);
+		}
+		else if (rc == ERR_TOO_MANY_COMMANDS)
+		{
+			printf(CMD_ERR_PIPE_LIMIT,CMD_MAX);
+		}	
+	
+	}
+
+    //printf(M_NOT_IMPL);
+    //exit(EXIT_NOT_IMPL);
 }
