@@ -21,11 +21,11 @@
 
 - You should have also learned about "pipes". Redirection and piping both involve controlling input and output in the shell, but they serve different purposes. Explain the key differences between redirection and piping.
 
-    > **Answer**:  _start here_
+    > **Answer**:  pipes let us do multiple commands at once and feed the output of one command directly into the input of another command. it is basically a chain of commands we want to run. the redirection is used more so to store or read input/ output from a file. 
 
 - STDERR is often used for error messages, while STDOUT is for regular output. Why is it important to keep these separate in a shell?
 
-    > **Answer**:  _start here_
+    > **Answer**:  we don't want to jumble up our error messages with valid output because when we go back to check the output it will be hard to identify what is happening (what worked and what errored out). by handling the regular output and the error outputs separately we can still utilize the commands that worked properly without messing up the whole file. if I want to store the number of lines from multiple input files into file2.txt, but I misspell the command one time and it doesn't run properly, I don't want to have to start compiling my file2.txt over again because there is now an error message stored there by accident. 
 
 - How should our custom shell handle errors from commands that fail? Consider cases where a command outputs both STDOUT and STDERR. Should we provide a way to merge them, and if so, how?
 
