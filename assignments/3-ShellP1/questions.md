@@ -29,4 +29,4 @@
 
 - How should our custom shell handle errors from commands that fail? Consider cases where a command outputs both STDOUT and STDERR. Should we provide a way to merge them, and if so, how?
 
-    > **Answer**:  _start here_
+    > **Answer**:  the properly working commands should redirect into the wanted file and the errors should redirect into a different file so that the user can see what commands did not work also. We should allow a way that allows all the commands to be stored in the same file if that is what the user wants from us. 
